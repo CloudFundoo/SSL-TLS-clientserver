@@ -77,7 +77,7 @@ int main(void)
 		printf("Error on socket creation\n");
 		return -1;
 	}
-	memset(&serveraddr, 0, sizeof(struct sockraddr_un));
+	memset(&serveraddr, 0, sizeof(struct sockaddr_un));
 	serveraddr.sun_family = AF_UNIX;
 	serveraddr.sun_path[0] = 0;
 	strncpy(&(serveraddr.sun_path[1]), SSL_SERVER_ADDR, strlen(SSL_SERVER_ADDR) + 1);
