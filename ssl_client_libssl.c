@@ -13,7 +13,7 @@
 #define SSL_CLIENT_RSA_CA_CERT	"ssl_client_ca.crt"
 #define SSL_CLIENT_RSA_CA_PATH	""
 
-#define SSL_SERVER_ADDR		"/home/nmathew/ssl_server"
+#define SSL_SERVER_ADDR		"/home/xxxx/ssl_server"
 
 #define OFF	0
 #define ON	1
