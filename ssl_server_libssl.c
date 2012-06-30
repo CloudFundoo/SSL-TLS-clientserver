@@ -8,12 +8,12 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#define SSL_SERVER_RSA_CERT	"ssl_server.crt"
-#define SSL_SERVER_RSA_KEY	"ssl_server.key"
-#define SSL_SERVER_RSA_CA_CERT	"ssl_server_ca.crt"
-#define SSL_SERVER_RSA_CA_PATH	""
+#define SSL_SERVER_RSA_CERT	"/home/nmathew/cacert/ssl_server.crt"
+#define SSL_SERVER_RSA_KEY	"/home/nmathew/cacert/ssl_server.key"
+#define SSL_SERVER_RSA_CA_CERT	"/home/nmathew/cacert/ca.crt"
+#define SSL_SERVER_RSA_CA_PATH	"/home/nmathew/cacert/"
 
-#define SSL_SERVER_ADDR		"/home/xxxx/ssl_server"
+#define SSL_SERVER_ADDR		"/home/nmathew/ssl_server"
 
 #define OFF	0
 #define ON	1
@@ -79,7 +79,7 @@ int main(void)
 	serveraddr.sun_family = AF_UNIX;
 	serveraddr.sun_path[0] = 0;
 	strncpy(&(serveraddr.sun_path[1]), SSL_SERVER_ADDR, strlen(SSL_SERVER_ADDR) + 1);
-	if(!bind(serversocketfd, (struct sockaddr *)&serveraddr, sizeof(struct sockaddr_un)))
+	if(bind(serversocketfd, (struct sockaddr *)&serveraddr, sizeof(struct sockaddr_un)))
 	{
 		printf("server bind error\n");
 		return -1;
