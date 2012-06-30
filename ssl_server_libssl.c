@@ -20,7 +20,7 @@
 
 int main(void)
 {
-	int verify_peer = OFF;
+	int verify_peer = ON;
 	SSL_METHOD *server_meth;
 	SSL_CTX *ssl_server_ctx;
 	int serversocketfd;
@@ -96,6 +96,7 @@ int main(void)
 		char buffer[1024];
 		int bytesread = 0;
 		int addedstrlen;
+		int ret;
 	
 		clientsocketfd = accept(serversocketfd, NULL, 0);
 		serverssl = SSL_new(ssl_server_ctx);
@@ -106,9 +107,9 @@ int main(void)
 		}
 		SSL_set_fd(serverssl, clientsocketfd);
 		
-		if(SSL_accept(serverssl) != 1)
+		if((ret = SSL_accept(serverssl))!= 1)
 		{
-			printf("Handshake Error \n");
+			printf("Handshake Error %d\n", SSL_get_error(serverssl, ret));
 			return -1;
 		}
 		
@@ -118,7 +119,7 @@ int main(void)
 
 			ssl_client_cert = SSL_get_peer_certificate(serverssl);
 			
-			if(!ssl_client_cert)
+			if(ssl_client_cert)
 			{
 				long verifyresult;
 

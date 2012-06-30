@@ -20,7 +20,7 @@
 
 int main(void)
 {
-	int verify_peer = OFF;
+	int verify_peer = ON;
 	SSL_METHOD *client_meth;
 	SSL_CTX *ssl_client_ctx;
 	int clientsocketfd;
@@ -28,6 +28,7 @@ int main(void)
 	int handshakestatus;
 	SSL *clientssl;
 	char buffer[1024] = "Client Hello World";
+	int ret;
 
 	SSL_library_init();
 	SSL_load_error_strings();
@@ -72,7 +73,7 @@ int main(void)
 		SSL_CTX_set_verify_depth(ssl_client_ctx, 1);
 	}
 
-	if((clientsocketfd = socket(AF_UNIX, SOCK_STREAM|SOCK_NONBLOCK, 0)) < 0)
+	if((clientsocketfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
 		printf("Error on socket creation\n");
 		return -1;
@@ -93,9 +94,9 @@ int main(void)
 	}
 	SSL_set_fd(clientssl, clientsocketfd);
 		
-	if(SSL_connect(clientssl) != 1)
+	if((ret = SSL_connect(clientssl)) != 1)
 	{
-		printf("Handshake Error \n");
+		printf("Handshake Error %d\n", SSL_get_error(clientssl, ret));
 		return -1;
 	}
 		
@@ -105,7 +106,7 @@ int main(void)
 
 		ssl_client_cert = SSL_get_peer_certificate(clientssl);
 			
-		if(!ssl_client_cert)
+		if(ssl_client_cert)
 		{
 			long verifyresult;
 
