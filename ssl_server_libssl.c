@@ -70,7 +70,7 @@ int main(void)
 		SSL_CTX_set_verify_depth(ssl_server_ctx, 1);
 	}
 
-	if((serversocketfd = socket(AF_UNIX, SOCK_STREAM|SOCK_NONBLOCK, 0)) < 0)
+	if((serversocketfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
 		printf("Error on socket creation\n");
 		return -1;
@@ -85,18 +85,19 @@ int main(void)
 		return -1;
 	}
 	
-	if(!listen(serversocketfd, SOMAXCONN))
+	if(listen(serversocketfd, SOMAXCONN))
 	{
 		printf("Error on listen\n");
 		return -1;
 	}	
-	while((clientsocketfd = accept(serversocketfd, NULL, 0)) > 0)
+	while(1)
 	{
 		SSL *serverssl;
 		char buffer[1024];
 		int bytesread = 0;
 		int addedstrlen;
-
+	
+		clientsocketfd = accept(serversocketfd, NULL, 0);
 		serverssl = SSL_new(ssl_server_ctx);
 		if(!serverssl)
 		{
