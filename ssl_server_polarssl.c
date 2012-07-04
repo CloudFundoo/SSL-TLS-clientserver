@@ -49,6 +49,20 @@ int ssl_server_ciphersuites[]=
 ssl_session *ssl_session_list = NULL;
 ssl_session *current, *prev;
 
+void free_session_list(void)
+{
+	current = ssl_session_list;
+	
+	while(!current)
+	{
+		prev = current;
+		current = current->next;
+		memset(prev, 0, sizeof(ssl_session));
+		free(prev);
+	}
+	return;
+}
+
 static int ssl_server_get_session(ssl_context *session)
 {
 	time_t t = time(NULL);
@@ -127,7 +141,6 @@ int main(void)
 	ssl_context serverssl;
 	ssl_session sslserversession;
 	int serversocketfd;
-	int clientsocketfd;
 	char *owner = "ssl_server";
 
 	memset(&ssl_server_crt, 0, sizeof(x509_cert));
@@ -189,16 +202,35 @@ int main(void)
 	ssl_set_ca_chain(&serverssl, ssl_server_crt.next, NULL, NULL);
 	ssl_set_own_cert(&serverssl, &ssl_server_crt, &ssl_server_rsa);
 	ssl_set_dh_param(&serverssl, ssl_server_dh_P, ssl_server_dh_G);
-	
-	
-	
-	
 
-
-
-	
-	
-
+	while(1)
+	{
+		int clientsocketfd;
+		char buffer[1024];
+		int bytesread;
+		int addedstrlen;
+		
+		clientsocketfd = accept(serversocketfd, NULL, 0);
+		ssl_session_reset(&serverssl);
+		ssl_set_bio(&serverssl, net_recv, &clientsocketfd, net_send, &clientsocketfd);
+		if((ret = ssl_handshake(&serverssl)) != 0)
+		{
+			printf("ssl_handshake failed %d\n", ret);
+			return -1;
+		}		
+		bytesread = ssl_read(&serverssl, buffer, sizeof(buffer));
+		addedstrlen = strlen("Appended by SSL Server");
+		strncpy(&buffer[bytesread], "Appended by SSL Server", addedstrlen);
+		buffer[bytesread + addedstrlen] = '\0';
+		ssl_write(&serverssl, buffer, bytesread + addedstrlen + 1);
+		ssl_close_notify(&serverssl);
+		net_close(clientsocketfd);
+	}
+	x509_free(&ssl_server_crt);
+	rsa_free(&ssl_server_rsa);
+	ssl_free(&serverssl);
+	close(serversocketfd);
+	free_session_list();
 	
 	return 0;
 }
