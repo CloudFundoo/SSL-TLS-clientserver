@@ -133,6 +133,7 @@ void ssl_server_debug(void *ssl_server_ctx, int level, const char *str)
 int main(void)
 {
 	int ret;
+	int verify_peer = 0;
 	x509_cert ssl_server_crt;
 	rsa_context ssl_server_rsa;
 	struct sockaddr_un serveraddr;
@@ -193,13 +194,16 @@ int main(void)
 
 	ssl_set_endpint(&serverssl, SSL_IS_SERVER);
 	ssl_set_authmode(&serverssl, SSL_VERIFY_NONE);
+	if(verify_peer)
+		ssl_set_authmode(&serverssl, SSL_VERIFY_REQUIRED);
+		
 	ssl_set_rng(&serverssl, ctr_drbg_random, &ssl_server_ctr_drbg);
 	ssl_set_dbg(&serverssl, ssl_server_debug, stdout);	
-	ssl_setscb(&serverssl, ssl_server_get_session, ssl_server_set_session);
+	ssl_set_scb(&serverssl, ssl_server_get_session, ssl_server_set_session);
 	ssl_set_ciphersuites(&serverssl, ssl_server_ciphersuites);
 	ssl_set_session(&serverssl, 1, 0, &sslserversession);
 	memset(&sslserversession, 0, sizeof(ssl_session));
-	ssl_set_ca_chain(&serverssl, ssl_server_crt.next, NULL, NULL);
+	//ssl_set_ca_chain(&serverssl, ssl_server_crt.next, NULL, NULL);
 	ssl_set_own_cert(&serverssl, &ssl_server_crt, &ssl_server_rsa);
 	ssl_set_dh_param(&serverssl, ssl_server_dh_P, ssl_server_dh_G);
 
