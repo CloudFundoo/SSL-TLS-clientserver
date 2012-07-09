@@ -10,6 +10,7 @@
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+#include "polarssl/pem.h"
 
 #define SSL_SERVER_RSA_CERT	"/home/nmathew/cacert/ssl_server.crt"
 #define SSL_SERVER_RSA_KEY	"/home/nmathew/cacert/ssl_server.key"
@@ -50,7 +51,10 @@ int ssl_server_ciphersuites[]=
 	0
 };
 	
-	
+int polarssl_pem_password_callback(char *buffer, int *size)
+{	
+	*size = scanf("%s", buffer);	
+}
 
 ssl_session *ssl_session_list = NULL;
 ssl_session *current, *prev;
@@ -161,8 +165,19 @@ int main(void)
 
 	if((ret = x509parse_keyfile(&ssl_server_rsa, SSL_SERVER_RSA_KEY, NULL)) !=0 )
 	{
-		printf("x509parse_keyfile SERVER KEY returned %d\n", ret);
-		return -1;
+		if(ret == POLARSSL_ERR_PEM_PASSWORD_REQUIRED)
+		{
+			char buffer[100];
+			int size;
+           
+			polarssl_pem_password_callback(buffer, &size);
+			
+			if((ret = x509parse_keyfile(&ssl_server_rsa, SSL_SERVER_RSA_KEY, buffer)) !=0 )
+			{
+				printf("x509parse_keyfile SERVER KEY returned %d\n", ret);
+				return -1;
+			}
+		}
 	}
 	if((serversocketfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{	

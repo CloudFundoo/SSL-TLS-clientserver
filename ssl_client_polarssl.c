@@ -9,6 +9,7 @@
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
+#include "polarssl/pem.h"
 
 #define SSL_CLIENT_RSA_CERT		"/home/nmathew/cacert/ssl_client.crt"
 #define SSL_CLIENT_RSA_KEY		"/home/nmathew/cacert/ssl_client.key"
@@ -18,6 +19,11 @@
 #define SSL_SERVER_ADDR			"/home/nmathew/ssl_server"
 
 #define CURRENT_SSL_CLIENT_DEBUG_LEVEL	0
+
+void polarssl_pem_password_callback(char *buffer, int *size)
+{
+	*size = scanf("%s", buffer);
+}
 
 void ssl_client_debug(void *ssl_client_ctx, int level, const char* str)
 {
@@ -64,8 +70,18 @@ int main(void)
 
 	if((ret = x509parse_keyfile(&ssl_client_rsa, SSL_CLIENT_RSA_KEY, NULL)) != 0)
 	{
-		printf("x509parse_keyfile CLIENT KEY returned %d\n", ret);
-		return -1;
+		if(ret == POLARSSL_ERR_PEM_PASSWORD_REQUIRED)
+		{	
+			char buffer[100];
+			int size;
+
+			polarssl_pem_password_callback(buffer, &size);
+			if((ret = x509parse_keyfile(&ssl_client_rsa, SSL_CLIENT_RSA_KEY, buffer)) != 0)
+			{
+				printf("x509parse_keyfile CLIENT KEY returned %d\n", ret);
+				return -1;
+			}
+		}
 	}
 	
 	if((clientsocketfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
