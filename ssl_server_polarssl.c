@@ -1,4 +1,10 @@
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
@@ -192,7 +198,7 @@ int main(void)
 		return -1;
 	}
 
-	ssl_set_endpint(&serverssl, SSL_IS_SERVER);
+	ssl_set_endpoint(&serverssl, SSL_IS_SERVER);
 	ssl_set_authmode(&serverssl, SSL_VERIFY_NONE);
 	if(verify_peer)
 		ssl_set_authmode(&serverssl, SSL_VERIFY_REQUIRED);
