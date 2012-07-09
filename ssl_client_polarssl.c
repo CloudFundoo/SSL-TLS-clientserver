@@ -38,6 +38,7 @@ int main(void)
 	struct sockaddr_un serveraddr;
 	char *owner = "ssl_client";
 	int clientsocketfd;
+	char buffer[1024] = "Client Hello World";
 
 	memset(&clientssl, 0, sizeof(ssl_context));
 	memset(&sslclientsession, 0, sizeof(ssl_session));
@@ -99,10 +100,22 @@ int main(void)
 		printf("handshake failed returned %d\n", ret);
 		return -1;
 	}
-	
-		
-	
-	
+	if((ret = ssl_write(&clientssl, buffer, strlen(buffer) + 1)) <= 0)
+	{
+		printf("ssl_write failed returned %d\n", ret);
+		return -1;
+	}
+	if((ret = ssl_read(&clientssl, buffer, sizeof(buffer))) <= 0)
+	{
+		printf("ssl_read failed returned %d\n", ret);
+		return -1;
+	}
+	printf("SSL server send %s\n", buffer);
+	ssl_close_notify(&clientssl);
+	net_close(clientsocketfd);
+	x509_free(&ssl_client_cert);
+	rsa_free(&ssl_client_rsa);
+	ssl_free(&clientssl);
 	
 	return 0;
 }
